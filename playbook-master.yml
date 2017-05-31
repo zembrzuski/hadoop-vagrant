@@ -1,0 +1,81 @@
+---
+- hosts: all
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+  gather_facts: no
+
+  vars:
+    machine: "{{ my_machine }}"
+    default_folder: /home/vagrant
+
+  tasks:
+  - name: Installing vim
+    apt:
+      name: vim
+      state: present
+      update_cache: yes
+
+  - name: Add Java repository to sources
+    action: apt_repository repo='ppa:webupd8team/java'
+
+  - name: Autoaccept license for Java
+    action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+
+  - name: Update APT package cache
+    action: apt update_cache=yes
+
+  - name: Install Java 8
+    action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
+
+  - name: Set Java 8 Env
+    action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
+
+  - name: addgroup hadoop
+    group:
+      name: hadoop
+      state: present    
+
+  - name: addgroup hadoop
+    group:
+      name: hadoop
+      state: present    
+
+  - name: Adding user hduser
+    user: 
+      name: hduser
+      shell: /bin/bash
+      groups: hadoop
+      append: yes
+      generate_ssh_key: yes
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
+
+  - name: copying id_rsa.pub to authorized keys
+    command: "cp /home/hduser/.ssh/id_rsa.pub /home/hduser/.ssh/authorized_keys creates=/home/hduser/.ssh/authorized_keys"
+
+  - name: checa se o ipv6 esta disabled.
+    shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
+    register: ipv6_is_disabled
+
+  - name: disabling ipv6
+    lineinfile: dest=/etc/sysctl.conf
+                line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
+                state=present
+    when: ipv6_is_disabled.stdout.find('0') != -1
+
+  - name: se esta habilitado o ipv6, reboota
+    shell: reboot
+    async: 0
+    poll: 0
+    when: ipv6_is_disabled.stdout.find('0') != -1
+
+  # ATENCAO
+  # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
+  - name: Waiting for reboot
+    sudo: no
+    local_action: wait_for host=master state=started delay=10 timeout=60
+    when: ipv6_is_disabled.stdout.find('0') != -1
+
+  - name: writing my var to an archive in a way to check if the arguments are working fine
+    shell: "echo {{machine}} >> lala.txt"
