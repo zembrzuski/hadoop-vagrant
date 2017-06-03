@@ -8,74 +8,155 @@
   vars:
     machine: "{{ my_machine }}"
     default_folder: /home/vagrant
+    hadoop_folder: /usr/local/hadoop
+    hadoop_with_version: hadoop-2.7.3
+    hadoop_folder_final: "{{ hadoop_folder }}/{{ hadoop_with_version }}"
+    hadoop_conf_dir: "{{ hadoop_folder_final }}/etc/hadoop"
+    java_home: /usr/lib/jvm/java-8-oracle
+    core_site_props: <property><name>hadoop.tmp.dir</name><value>/app/hadoop/tmp</value><description>A base for other temporary directories.</description></property><property><name>fs.default.name</name><value>hdfs://localhost:54310</value><description>The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uri's scheme determines the config property (fs.SCHEME.impl) naming the FileSystem implementation class.  The uri's authority is used to determine the host, port, etc. for a filesystem.</description></property>
+    mapred_site_props: <?xml version="1.0"?><?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration><property><name>mapred.job.tracker</name><value>localhost:54311</value><description>The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task. </description></property></configuration>
+    hdfs_site_props: <property><name>dfs.replication</name><value>1</value><description>Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time. </description></property>
 
   tasks:
-  - name: Installing vim
-    apt:
-      name: vim
-      state: present
-      update_cache: yes
+  # - name: Installing vim
+  #   apt:
+  #     name: vim
+  #     state: present
+  #     update_cache: yes
 
-  - name: Add Java repository to sources
-    action: apt_repository repo='ppa:webupd8team/java'
+  # - name: Add Java repository to sources
+  #   action: apt_repository repo='ppa:webupd8team/java'
 
-  - name: Autoaccept license for Java
-    action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+  # - name: Autoaccept license for Java
+  #   action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 
-  - name: Update APT package cache
-    action: apt update_cache=yes
+  # - name: Update APT package cache
+  #   action: apt update_cache=yes
 
-  - name: Install Java 8
-    action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
+  # - name: Install Java 8
+  #   action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
 
-  - name: Set Java 8 Env
-    action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
+  # - name: Set Java 8 Env
+  #   action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
 
-  - name: addgroup hadoop
-    group:
-      name: hadoop
-      state: present    
+  # - name: addgroup hadoop
+  #   group:
+  #     name: hadoop
+  #     state: present    
 
-  - name: addgroup hadoop
-    group:
-      name: hadoop
-      state: present    
+  # - name: addgroup hadoop
+  #   group:
+  #     name: hadoop
+  #     state: present    
 
-  - name: Adding user hduser
-    user: 
-      name: hduser
-      shell: /bin/bash
-      groups: hadoop
-      append: yes
-      generate_ssh_key: yes
-      ssh_key_bits: 2048
-      ssh_key_file: .ssh/id_rsa
+  # - name: Adding user hduser
+  #   user: 
+  #     name: hduser
+  #     shell: /bin/bash
+  #     groups: hadoop
+  #     append: yes
+  #     generate_ssh_key: yes
+  #     ssh_key_bits: 2048
+  #     ssh_key_file: .ssh/id_rsa
 
-  - name: copying id_rsa.pub to authorized keys
-    command: "cp /home/hduser/.ssh/id_rsa.pub /home/hduser/.ssh/authorized_keys creates=/home/hduser/.ssh/authorized_keys"
+  # - name: copying id_rsa.pub to authorized keys
+  #   command: "cp /home/hduser/.ssh/id_rsa.pub /home/hduser/.ssh/authorized_keys creates=/home/hduser/.ssh/authorized_keys"
 
-  - name: checa se o ipv6 esta disabled.
-    shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-    register: ipv6_is_disabled
+  # - name: checa se o ipv6 esta disabled.
+  #   shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
+  #   register: ipv6_is_disabled
 
-  - name: disabling ipv6
-    lineinfile: dest=/etc/sysctl.conf
-                line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
+  # - name: disabling ipv6
+  #   lineinfile: dest=/etc/sysctl.conf
+  #               line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
+  #               state=present
+  #   when: ipv6_is_disabled.stdout.find('0') != -1
+
+  # - name: se esta habilitado o ipv6, reboota
+  #   shell: reboot
+  #   async: 0
+  #   poll: 0
+  #   when: ipv6_is_disabled.stdout.find('0') != -1
+
+  # # ATENCAO
+  # # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
+  # - name: Waiting for reboot
+  #   sudo: no
+  #   local_action: wait_for host=master state=started delay=10 timeout=60
+  #   when: ipv6_is_disabled.stdout.find('0') != -1
+
+  # - name: Download hadoop
+  #   get_url:
+  #     url: "http://ftp.unicamp.br/pub/apache/hadoop/core/stable2/{{ hadoop_with_version }}.tar.gz"
+  #     dest: "{{ default_folder }}/hadoop.tar.gz"
+
+  # - name: Create haddop dir
+  #   file: 
+  #     path: "{{ hadoop_folder }}"
+  #     state: directory
+  #     owner: hduser
+  #     group: hadoop   
+  #     recurse: yes      
+  #     #mode: "u+rw,g-wx,o-rwx"
+
+  # # TODO se eu nao setar o copy, ele pega da maquina local, o que pode ser muito bom
+  # # para provisioonar muitas masquinas
+  # # ATENCAO, ELE ESTA COPIANDO TODA VEZ ISSO.
+  # - name: extracting hadoop 
+  #   unarchive:
+  #     src: "{{ default_folder }}/hadoop.tar.gz"
+  #     dest: "{{ hadoop_folder }}"
+  #     copy: no
+
+  - name: checa se hadoop_home is setted
+    shell: "echo $HADOOP_HOME"
+    register: hadoop_home
+  
+  - name: export hadoop home
+    lineinfile: dest="{{ default_folder }}/.bashrc"
+                line="export HADOOP_HOME={{ hadoop_folder_final }}\nexport PATH=$PATH:$HADOOP_HOME/bin"
                 state=present
-    when: ipv6_is_disabled.stdout.find('0') != -1
+    when: hadoop_home.stdout.find('h') == -1
 
-  - name: se esta habilitado o ipv6, reboota
-    shell: reboot
-    async: 0
-    poll: 0
-    when: ipv6_is_disabled.stdout.find('0') != -1
+  - name: setting hadoop-env.sh
+    lineinfile: dest="{{ hadoop_conf_dir }}/hadoop-env.sh"
+                line="export JAVA_HOME=${JAVA_HOME}"
+                state=absent
 
-  # ATENCAO
-  # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
-  - name: Waiting for reboot
-    sudo: no
-    local_action: wait_for host=master state=started delay=10 timeout=60
-    when: ipv6_is_disabled.stdout.find('0') != -1
+  - name: setting hadoop-env.sh
+    lineinfile: dest="{{ hadoop_conf_dir }}/hadoop-env.sh"
+                line="export JAVA_HOME={{ java_home }}"
+                state=present
 
-  - name: writing my var to an archive in a way to check if the arguments are working fine
-    shell: "echo {{machine}} >> lala.txt"
+  - name: Create tmp-haddop dir
+    file: 
+      path: /app/hadoop/tmp
+      state: directory
+      owner: hduser
+      group: hadoop   
+      mode: "u+rwx,g+rx,o-rwx"
+      recurse: yes      
+
+  - name: Updating core-site.xml
+    lineinfile: dest="{{ hadoop_conf_dir }}/core-site.xml"
+                line="{{ core_site_props }}"
+                insertbefore="</configuration>"
+                state=present
+
+  - name: creating mapred-site.xml
+    copy:
+      content: ""
+      dest: "{{ hadoop_conf_dir }}/mapred-site.xml"
+      force: no
+
+  - name: Updating mapred-site.xml
+    lineinfile: dest="{{ hadoop_conf_dir }}/mapred-site.xml"
+                line="{{ mapred_site_props }}"
+                state=present
+
+  - name: Updating hdfs-site.xml
+    lineinfile: dest="{{ hadoop_conf_dir }}/hdfs-site.xml"
+                line="{{ hdfs_site_props }}"
+                insertbefore="</configuration>"
+                state=present
+
