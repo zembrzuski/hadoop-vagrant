@@ -18,95 +18,95 @@
     hdfs_site_props: <property><name>dfs.replication</name><value>1</value><description>Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time. </description></property>
 
   tasks:
-  # - name: Installing vim
-  #   apt:
-  #     name: vim
-  #     state: present
-  #     update_cache: yes
+  - name: Installing vim
+    apt:
+      name: vim
+      state: present
+      update_cache: yes
 
-  # - name: Add Java repository to sources
-  #   action: apt_repository repo='ppa:webupd8team/java'
+  - name: Add Java repository to sources
+    action: apt_repository repo='ppa:webupd8team/java'
 
-  # - name: Autoaccept license for Java
-  #   action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+  - name: Autoaccept license for Java
+    action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 
-  # - name: Update APT package cache
-  #   action: apt update_cache=yes
+  - name: Update APT package cache
+    action: apt update_cache=yes
 
-  # - name: Install Java 8
-  #   action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
+  - name: Install Java 8
+    action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
 
-  # - name: Set Java 8 Env
-  #   action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
+  - name: Set Java 8 Env
+    action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
 
-  # - name: addgroup hadoop
-  #   group:
-  #     name: hadoop
-  #     state: present    
+  - name: addgroup hadoop
+    group:
+      name: hadoop
+      state: present    
 
-  # - name: addgroup hadoop
-  #   group:
-  #     name: hadoop
-  #     state: present    
+  - name: addgroup hadoop
+    group:
+      name: hadoop
+      state: present    
 
-  # - name: Adding user hduser
-  #   user: 
-  #     name: hduser
-  #     shell: /bin/bash
-  #     groups: hadoop
-  #     append: yes
-  #     generate_ssh_key: yes
-  #     ssh_key_bits: 2048
-  #     ssh_key_file: .ssh/id_rsa
+  - name: Adding user hduser
+    user: 
+      name: hduser
+      shell: /bin/bash
+      groups: hadoop
+      append: yes
+      generate_ssh_key: yes
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
 
-  # - name: copying id_rsa.pub to authorized keys
-  #   command: "cp /home/hduser/.ssh/id_rsa.pub /home/hduser/.ssh/authorized_keys creates=/home/hduser/.ssh/authorized_keys"
+  - name: copying id_rsa.pub to authorized keys
+    command: "cp /home/hduser/.ssh/id_rsa.pub /home/hduser/.ssh/authorized_keys creates=/home/hduser/.ssh/authorized_keys"
 
-  # - name: checa se o ipv6 esta disabled.
-  #   shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
-  #   register: ipv6_is_disabled
+  - name: checa se o ipv6 esta disabled.
+    shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
+    register: ipv6_is_disabled
 
-  # - name: disabling ipv6
-  #   lineinfile: dest=/etc/sysctl.conf
-  #               line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
-  #               state=present
-  #   when: ipv6_is_disabled.stdout.find('0') != -1
+  - name: disabling ipv6
+    lineinfile: dest=/etc/sysctl.conf
+                line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
+                state=present
+    when: ipv6_is_disabled.stdout.find('0') != -1
 
-  # - name: se esta habilitado o ipv6, reboota
-  #   shell: reboot
-  #   async: 0
-  #   poll: 0
-  #   when: ipv6_is_disabled.stdout.find('0') != -1
+  - name: se esta habilitado o ipv6, reboota
+    shell: reboot
+    async: 0
+    poll: 0
+    when: ipv6_is_disabled.stdout.find('0') != -1
 
-  # # ATENCAO
-  # # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
-  # - name: Waiting for reboot
-  #   sudo: no
-  #   local_action: wait_for host=master state=started delay=10 timeout=60
-  #   when: ipv6_is_disabled.stdout.find('0') != -1
+  # ATENCAO
+  # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
+  - name: Waiting for reboot
+    sudo: no
+    local_action: wait_for host=master state=started delay=10 timeout=60
+    when: ipv6_is_disabled.stdout.find('0') != -1
 
-  # - name: Download hadoop
-  #   get_url:
-  #     url: "http://ftp.unicamp.br/pub/apache/hadoop/core/stable2/{{ hadoop_with_version }}.tar.gz"
-  #     dest: "{{ default_folder }}/hadoop.tar.gz"
+  - name: Download hadoop
+    get_url:
+      url: "http://ftp.unicamp.br/pub/apache/hadoop/common/{{hadoop_with_version}}/{{hadoop_with_version}}.tar.gz"
+      dest: "{{ default_folder }}/hadoop.tar.gz"
 
-  # - name: Create haddop dir
-  #   file: 
-  #     path: "{{ hadoop_folder }}"
-  #     state: directory
-  #     owner: hduser
-  #     group: hadoop   
-  #     recurse: yes      
-  #     #mode: "u+rw,g-wx,o-rwx"
+  - name: Create haddop dir
+    file: 
+      path: "{{ hadoop_folder }}"
+      state: directory
+      owner: hduser
+      group: hadoop   
+      recurse: yes      
+      #mode: "u+rw,g-wx,o-rwx"
 
-  # # TODO se eu nao setar o copy, ele pega da maquina local, o que pode ser muito bom
-  # # para provisioonar muitas masquinas
-  # # ATENCAO, ELE ESTA COPIANDO TODA VEZ ISSO.
-  # - name: extracting hadoop 
-  #   unarchive:
-  #     src: "{{ default_folder }}/hadoop.tar.gz"
-  #     dest: "{{ hadoop_folder }}"
-  #     copy: no
+  # TODO se eu nao setar o copy, ele pega da maquina local, o que pode ser muito bom
+  # para provisioonar muitas masquinas
+  # ATENCAO, ELE ESTA COPIANDO TODA VEZ ISSO.
+  - name: extracting hadoop 
+    unarchive:
+      src: "{{ default_folder }}/hadoop.tar.gz"
+      dest: "{{ hadoop_folder }}"
+      copy: no
 
   - name: checa se hadoop_home is setted
     shell: "echo $HADOOP_HOME"
