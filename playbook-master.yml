@@ -14,7 +14,13 @@
     hadoop_folder_final: "{{ hadoop_folder }}/{{ hadoop_with_version }}"
     hadoop_conf_dir: "{{ hadoop_folder_final }}/etc/hadoop"
     java_home: /usr/lib/jvm/java-8-oracle
-    core_site_props: <property><name>hadoop.tmp.dir</name><value>/app/hadoop/tmp</value><description>A base for other temporary directories.</description></property><property><name>fs.default.name</name><value>hdfs://localhost:54310</value><description>The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uri's scheme determines the config property (fs.SCHEME.impl) naming the FileSystem implementation class.  The uri's authority is used to determine the host, port, etc. for a filesystem.</description></property>
+    
+
+
+    core_site_props: <property><name>hadoop.tmp.dir</name><value>/app/hadoop/tmp</value><description>A base for other temporary directories.</description></property><property><name>fs.default.name</name><value>hdfs://master:54310</value><description>The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uri's scheme determines the config property (fs.SCHEME.impl) naming the FileSystem implementation class.  The uri's authority is used to determine the host, port, etc. for a filesystem.</description></property>
+    
+
+
     mapred_site_props: <?xml version="1.0"?><?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration><property><name>mapred.job.tracker</name><value>localhost:54311</value><description>The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task. </description></property></configuration>
     hdfs_site_props: <property><name>dfs.replication</name><value>1</value><description>Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time. </description></property>
 
@@ -67,6 +73,7 @@
     shell: cat /proc/sys/net/ipv6/conf/all/disable_ipv6
     register: ipv6_is_disabled
 
+  # DEVO TROCAR ISSO POR BLOCKINFILE
   - name: disabling ipv6
     lineinfile: dest=/etc/sysctl.conf
                 line="net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1"
@@ -82,6 +89,8 @@
   # ATENCAO
   # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
   # O ideal eh reiniciar o servico de rede sem reiniciar a maquina.
+  # talvez esse comando resolva
+  # sudo ifdown eth0 && sudo ifup eth0
   - name: Waiting for reboot
     sudo: no
     local_action: wait_for host=master state=started delay=10 timeout=60
@@ -175,6 +184,24 @@
       mode: "u+rwx,g+rx,o-rwx"
       recurse: yes      
 
-  # nao vou dar o start no hadoop por enquanto.
-  #- name: starting hadoop
-  #  shell: "{{ hadoop_folder_final }}/sbin/start-all.sh"
+  - name: setting conf/masters
+    copy:
+      content: "master"
+      dest: "{{ hadoop_conf_dir }}/masters"
+      force: no
+      owner: hduser
+      group: hadoop   
+
+  #
+  #TODO isso eh critico. tenho que parametrizar esse cara, pq se eu quiser provisionar 100 nodos, como faco?
+  # 
+  - name: setting conf/slaves (1)
+    lineinfile: dest={{ hadoop_conf_dir }}/slaves
+                line="localhost"
+                state=absent
+
+  - name: setting conf/slaves (1)
+    blockinfile: |
+      dest={{ hadoop_conf_dir }}/slaves
+      content="masters
+               slave1"
