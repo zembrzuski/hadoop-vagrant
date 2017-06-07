@@ -8,6 +8,7 @@
   vars:
     machine: "{{ my_machine }}"
     default_folder: /home/vagrant
+    hduser_home: /home/hduser
     hadoop_folder: /usr/local/hadoop
     hadoop_with_version: hadoop-2.7.3
     hadoop_folder_final: "{{ hadoop_folder }}/{{ hadoop_with_version }}"
@@ -80,6 +81,7 @@
 
   # ATENCAO
   # Isso aqui, na pratica, nao funciona. O que está acontecendo é que depois de 60s dá timeout e ele reconecta.
+  # O ideal eh reiniciar o servico de rede sem reiniciar a maquina.
   - name: Waiting for reboot
     sudo: no
     local_action: wait_for host=master state=started delay=10 timeout=60
@@ -113,7 +115,7 @@
     register: hadoop_home
   
   - name: export hadoop home
-    lineinfile: dest="{{ default_folder }}/.bashrc"
+    lineinfile: dest="{{ hduser_home }}/.bashrc"
                 line="export HADOOP_HOME={{ hadoop_folder_final }}\nexport PATH=$PATH:$HADOOP_HOME/bin"
                 state=present
     when: hadoop_home.stdout.find('h') == -1
@@ -159,4 +161,7 @@
                 line="{{ hdfs_site_props }}"
                 insertbefore="</configuration>"
                 state=present
+
+  - name: creating namenode
+    command: "{{ hadoop_folder_final }}/bin/hadoop namenode -format creates=/app/hadoop/tmp/dfs"
 
