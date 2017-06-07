@@ -103,12 +103,13 @@
 
   # TODO se eu nao setar o copy, ele pega da maquina local, o que pode ser muito bom
   # para provisioonar muitas masquinas
-  # ATENCAO, ELE ESTA COPIANDO TODA VEZ ISSO.
+  # ATENCAO, ELE ESTA COPIANDO TODA VEZ ISSO. ATENCAO: ACHO QUE NAO ESTA COPIANDO TODA VEZ MAIS POR CAUSA DO CAMPO CREATES. DEVO TESTAR ISSO
   - name: extracting hadoop 
     unarchive:
       src: "{{ default_folder }}/hadoop.tar.gz"
       dest: "{{ hadoop_folder }}"
       copy: no
+      creates: "{{ hadoop_folder_final }}"
 
   - name: checa se hadoop_home is setted
     shell: "echo $HADOOP_HOME"
@@ -165,3 +166,15 @@
   - name: creating namenode
     command: "{{ hadoop_folder_final }}/bin/hadoop namenode -format creates=/app/hadoop/tmp/dfs"
 
+  - name: Permission to /app/hadoop/tmp again to be sure that hdfuser have permission to dfs folder
+    file: 
+      path: /app/hadoop/tmp
+      state: directory
+      owner: hduser
+      group: hadoop   
+      mode: "u+rwx,g+rx,o-rwx"
+      recurse: yes      
+
+  # nao vou dar o start no hadoop por enquanto.
+  #- name: starting hadoop
+  #  shell: "{{ hadoop_folder_final }}/sbin/start-all.sh"
