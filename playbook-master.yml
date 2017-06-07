@@ -195,11 +195,14 @@
   #
   #TODO isso eh critico. tenho que parametrizar esse cara, pq se eu quiser provisionar 100 nodos, como faco?
   # 
+
+  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
   - name: setting conf/slaves (1)
     lineinfile: dest={{ hadoop_conf_dir }}/slaves
                 line="localhost"
                 state=absent
 
+  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
   - name: setting conf/slaves (1)
     blockinfile: |
       dest={{ hadoop_conf_dir }}/slaves
