@@ -1,4 +1,9 @@
 
+# TODO - A UNICA COISA QUE FALTA PARA EU TER ALGO FUNCIONAL EH
+# SETAR A SENHA DO HDUSER, PQ PRECISO DE SENHA PARA FAZER O SSH
+# ISSO EH FACIL
+
+
 def config_machine (config, machine_name, playbook_yml, ip)
   config.vm.define machine_name do |node|
     node.vm.provider :virtualbox do |v|
