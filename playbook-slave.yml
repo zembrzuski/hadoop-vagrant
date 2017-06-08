@@ -143,14 +143,12 @@
       mode: "u+rwx,g+rx,o-rwx"
       recurse: yes      
 
-  # ALL MACHINES
   - name: Updating core-site.xml
     lineinfile: dest="{{ hadoop_conf_dir }}/core-site.xml"
                 line="{{ core_site_props }}"
                 insertbefore="</configuration>"
                 state=present
 
-  # ALL MACHINES
   - name: creating mapred-site.xml
     copy:
       content: ""
@@ -167,41 +165,3 @@
                 line="{{ hdfs_site_props }}"
                 insertbefore="</configuration>"
                 state=present
-
-  - name: creating namenode
-    command: "{{ hadoop_folder_final }}/bin/hadoop namenode -format creates=/app/hadoop/tmp/dfs"
-
-  - name: Permission to /app/hadoop/tmp again to be sure that hdfuser have permission to dfs folder
-    file: 
-      path: /app/hadoop/tmp
-      state: directory
-      owner: hduser
-      group: hadoop   
-      mode: "u+rwx,g+rx,o-rwx"
-      recurse: yes      
-
-  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
-  - name: setting conf/masters
-    copy:
-      content: "master"
-      dest: "{{ hadoop_conf_dir }}/masters"
-      force: no
-      owner: hduser
-      group: hadoop   
-
-  #
-  #TODO isso eh critico. tenho que parametrizar esse cara, pq se eu quiser provisionar 100 nodos, como faco?
-  # 
-
-  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
-  - name: setting conf/slaves (1)
-    lineinfile: dest={{ hadoop_conf_dir }}/slaves
-                line="localhost"
-                state=absent
-
-  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
-  - name: setting conf/slaves (1)
-    blockinfile: |
-      dest={{ hadoop_conf_dir }}/slaves
-      content="masters
-               slave1"

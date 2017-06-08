@@ -20,7 +20,7 @@ Vagrant.configure(2) do |config|
       v.name = "master"
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-      v.memory = 512
+      v.memory = 1024
       v.cpus = 2
     end
     master.vm.network "private_network", ip: "192.168.56.11"
@@ -44,7 +44,7 @@ Vagrant.configure(2) do |config|
       v.name = "slave1"
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-      v.memory = 512
+      v.memory = 1024
       v.cpus = 2
     end
     slave_one.vm.network "private_network", ip: "192.168.56.12"
@@ -52,9 +52,9 @@ Vagrant.configure(2) do |config|
   
     slave_one.vm.provision :hostmanager
   
-    # config.vm.provision "ansible" do |ansible|
-    #  ansible.playbook = "playbook-slave.yml"
-    # end
+     config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "playbook-slave.yml"
+     end
   end
 
 end
