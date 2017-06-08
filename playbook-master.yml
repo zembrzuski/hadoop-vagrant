@@ -203,5 +203,5 @@
   - name: setting conf/slaves (1)
     blockinfile: |
       dest={{ hadoop_conf_dir }}/slaves
-      content="masters
+      content="master
                slave1"
