@@ -17,6 +17,12 @@ $ $HADOOP_HOME/sbin/start-dfs.sh
 
 ---
 
+Users and passwords
+user: vagrant 		passwd: vagrant
+user: hduser 		passwd: hduser
+
+---
+
 I used this blog as reference to implement it.
 http://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-multi-node-cluster/
 

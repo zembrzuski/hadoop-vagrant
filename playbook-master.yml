@@ -75,6 +75,22 @@
                 state=present
     when: ipv6_is_disabled.stdout.find('0') != -1
 
+  - name: Updating /etc/hosts
+    lineinfile: dest="/etc/hosts"
+                line="127.0.0.1	master	master"
+                state=absent
+
+  - name: Updating /etc/hosts
+    lineinfile: dest="/etc/hosts"
+                line="127.0.0.1	master"
+                state=absent
+
+  - name: Updating /etc/hosts
+    lineinfile: dest="/etc/hosts"
+                line="0.0.0.1       master"
+                insertbefore="127.0.1.1       precise64"
+                state=present
+
   - name: se esta habilitado o ipv6, reboota
     shell: reboot
     async: 0
@@ -144,14 +160,12 @@
       mode: "u+rwx,g+rx,o-rwx"
       recurse: yes      
 
-  # ALL MACHINES
   - name: Updating core-site.xml
     lineinfile: dest="{{ hadoop_conf_dir }}/core-site.xml"
                 line="{{ core_site_props }}"
                 insertbefore="</configuration>"
                 state=present
 
-  # ALL MACHINES
   - name: creating mapred-site.xml
     copy:
       content: ""
@@ -194,15 +208,22 @@
   #TODO isso eh critico. tenho que parametrizar esse cara, pq se eu quiser provisionar 100 nodos, como faco?
   # 
 
-  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
   - name: setting conf/slaves (1)
     lineinfile: dest={{ hadoop_conf_dir }}/slaves
                 line="localhost"
                 state=absent
 
-  # MASTER ONLY! NAO DEVO COPIAR PARA O SLAVE
   - name: setting conf/slaves (1)
     blockinfile: |
       dest={{ hadoop_conf_dir }}/slaves
       content="master
                slave1"
+
+  - name: Create hadoop dir
+    file: 
+      path: "{{ hadoop_folder }}"
+      state: directory
+      owner: hduser
+      group: hadoop   
+      recurse: yes      
+      #mode: "u+rw,g-wx,o-rwx"
