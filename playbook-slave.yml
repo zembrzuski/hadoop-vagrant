@@ -53,6 +53,7 @@
   - name: Adding user hduser
     user: 
       name: hduser
+      password: $6$i1X5M6lS$.sYSalRHezB6/HI.dcuK8of5dfwFaATO3wHMLMcy76yvAF1DUMHKxGSMa0PpNGYBxnTFJvzEG3CTyEhsk9qU5/
       shell: /bin/bash
       groups: hadoop
       append: yes

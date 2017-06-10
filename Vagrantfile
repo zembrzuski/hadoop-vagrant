@@ -1,8 +1,25 @@
 
-# TODO - A UNICA COISA QUE FALTA PARA EU TER ALGO FUNCIONAL EH
-# SETAR A SENHA DO HDUSER, PQ PRECISO DE SENHA PARA FAZER O SSH
-# ISSO EH FACIL
-
+#
+# This script is pumping!
+# 
+# You can use it with the following command
+# $ vagrant up
+#
+#
+# I used this blog as reference to implement it.
+# http://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-multi-node-cluster/
+#
+#
+# After provisioning all machines, you must run these two commands as hduser@master.
+# $ hadoop namenode -format
+# $ $HADOOP_HOME/sbin/start-dfs.sh
+#
+# Next step: generalize it to provision n machines. It is simple, and with some minutes
+# of ruby programming, I'll be able to do it.
+#
+# Thank you
+# @ github.com/zembrzuski
+# 
 
 def config_machine (config, machine_name, playbook_yml, ip)
   config.vm.define machine_name do |node|
@@ -41,6 +58,4 @@ Vagrant.configure(2) do |config|
   config_machine(config, "master", "playbook-master.yml", "192.168.56.11")
   config_machine(config, "slave1", "playbook-slave.yml",  "192.168.56.12")
 
-  # after provisioning all machines, I must run some commands
-  # http://www.michael-noll.com/tutorials/running-hadoop-on-ubuntu-linux-multi-node-cluster/
 end
